@@ -4,6 +4,7 @@
 
 ## canvas
 ### 1.世界新冠疫情图
+![world-covid](./assets/world-covid.gif)
 
 ## webgl
 
@@ -30,3 +31,4 @@
 ## threejs
 
 ### 1.github contributions 3维图像
+![github-contri](./assets/github-contri.gif)
