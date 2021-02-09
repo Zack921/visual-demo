@@ -12,10 +12,13 @@
 ![rotatingTriangle](./assets/rotatingTriangle.gif)
 
 ### 2.渐变三角形
+![coloredTriangle](./assets/coloredTriangle.png)
 
 ### 3.使用图像纹理
+![textureQuad](./assets/textureQuad.png)
 
 ### 4.基础彩色立方体
+![coloredCube](./assets/coloredCube.png)
 
 ### 5.平行光下的光照模型(环境光 + 漫反射)
 ![parallelCube](./assets/parallelCube.gif)
