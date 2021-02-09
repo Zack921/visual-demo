@@ -4,7 +4,7 @@
 
 ## canvas
 ### 1.世界新冠疫情图
-![world-covid](./assets/world-covid.gif)
+![world-covid](https://github.com/Zack921/visual-demo/blob/main/assets/github-contri.gif)
 
 ## webgl
 
