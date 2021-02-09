@@ -19,3 +19,9 @@
 三.在片元着色器上通过取样器，属于内插后的纹理坐标，得到对应的颜色  
 
 ![texture](./assets/use-texture.png)
+
+### 使用帧缓冲区：
+![frameBuffer](./assets/frameBuffer.png)
+
+### 如何实现阴影：
+![shadow](./assets/shadow.png)
