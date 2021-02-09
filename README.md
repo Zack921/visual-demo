@@ -1,7 +1,7 @@
 # 一些可视化的例子
 
 - [canvas](#canvas)
-  * [1.世界新冠疫情图](###[1.世界新冠疫情图])
+  * [1.世界新冠疫情图](#1.世界新冠疫情图)
 - [webgl](#webgl)
   * [webgl](#webgl)
     + [[1.旋转三角形](./webgl/examples/rotatingTriangle)](#-1--------webgl-examples-rotatingtriangle-)
@@ -19,7 +19,8 @@
 
 
 ## canvas
-### [1.世界新冠疫情图](./canvas2d/covid)
+### 1.世界新冠疫情图
+[1.世界新冠疫情图](./canvas2d/covid)
 ![world-covid](./assets/world-covid.gif)
 
 ## webgl
