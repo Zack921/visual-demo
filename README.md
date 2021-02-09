@@ -61,6 +61,6 @@
 ## threejs
 
 ### 1.github-contributions-3维图像
-![github-contri](./assets/github-contri.gif)
+![github-contri](./assets/github-contri.gif)  
 [查看代码](./threejs/githubContribution)
 
