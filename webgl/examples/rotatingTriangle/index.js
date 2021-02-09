@@ -63,7 +63,7 @@ function initVertexBuffers(gl) {
   // 写入数据
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-  var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+  const a_Position = gl.getAttribLocation(gl.program, 'a_Position');
   if(a_Position < 0) {
     console.log('Failed to get the storage location of a_Position');
     return -1;
