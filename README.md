@@ -3,7 +3,7 @@
 [TOC]
 
 ## canvas
-### 1.世界新冠疫情图
+### [1.世界新冠疫情图](./canvas2d/covid)
 ![world-covid](./assets/world-covid.gif)
 
 ## webgl
