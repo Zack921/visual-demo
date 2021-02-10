@@ -35,7 +35,7 @@ const FSHADER_SOURCE = `
   varying vec4 v_PositionFromLight;
   varying vec4 v_Color;
   void main() {
-    vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[-1,1]区间
+    vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[0,1]的纹理区间
     vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);
     float depth = rgbaDepth.r; // 阴影纹理上该点的z值
     float visibility = (shadowCoord.z > depth + 0.005) ? 0.7 : 1.0; // +0.005以消除马赫带，主要是精度影响。shadowCoord.z是16位，depth是8位
@@ -285,7 +285,7 @@ function initFramebufferObject(gl) {
     return error();
   }
   gl.bindTexture(gl.TEXTURE_2D, texture); // 绑定 纹理对象 到 纹理单元 上
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); // 清空 纹理对象 上的纹理数据
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); // 分配一块空白的存储空间
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); // 配置纹理对象参数，设置纹理图像映射到图形上的方式
 
   depthBuffer = gl.createRenderbuffer(); // 渲染缓冲区
