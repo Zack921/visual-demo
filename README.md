@@ -15,6 +15,7 @@
   * [10.利用阴影贴图实现阴影](#10利用阴影贴图实现阴影)
 - [threejs](#threejs)
   * [1.github-contributions-3维图像](###[1github-contributions-3维图像])
+  * [2.仿微信跳一跳](###[2仿微信跳一跳])
 
 
 ## canvas
@@ -64,3 +65,6 @@
 ![github-contri](./assets/github-contri.gif)  
 [查看代码](./threejs/githubContribution)
 
+### 2.仿微信跳一跳
+![jump-demo](./assets/jump-demo.gif)  
+[查看代码](https://github.com/Zack921/jump-demo)
