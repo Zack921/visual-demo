@@ -29,6 +29,22 @@ const VSHADER_SOURCE = `
   }
 `;
 
+// 不使用pcf
+// const FSHADER_SOURCE = `
+//   precision mediump float;
+//   uniform sampler2D u_ShadowMap;
+//   varying vec4 v_PositionFromLight;
+//   varying vec4 v_Color;
+//   void main() {
+//     vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[0,1]的纹理区间
+//     vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);
+//     float depth = rgbaDepth.r; // 阴影纹理上该点的z值
+//     float visibility = (shadowCoord.z > depth + 0.01) ? 0.7 : 1.0; // +0.005以消除马赫带，主要是精度影响。shadowCoord.z是16位，depth是8位
+//     gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);
+//   }
+// `;
+
+// 使用pcf
 const FSHADER_SOURCE = `
   precision mediump float;
   uniform sampler2D u_ShadowMap;
@@ -36,14 +52,24 @@ const FSHADER_SOURCE = `
   varying vec4 v_Color;
   void main() {
     vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[0,1]的纹理区间
-    vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);
-    float depth = rgbaDepth.r; // 阴影纹理上该点的z值
-    float visibility = (shadowCoord.z > depth + 0.005) ? 0.7 : 1.0; // +0.005以消除马赫带，主要是精度影响。shadowCoord.z是16位，depth是8位
+    float shadows = 0.0;
+    float opacity = 0.6; // 阴影alpha值, 值越小暗度越深
+    float texelSize = 1.0/1024.0; // 阴影像素尺寸,值越小阴影越逼真
+    vec4 rgbaDepth;
+    //  消除阴影边缘的锯齿
+    for(float y=-1.5; y <= 1.5; y += 1.0){
+      for(float x=-1.5; x <=1.5; x += 1.0){
+        rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy + vec2(x,y) * texelSize);
+        shadows += (shadowCoord.z > rgbaDepth.r + 0.01) ? 1.0 : 0.0;
+      }
+    }
+    shadows /= 16.0; // 4*4的样本
+    float visibility = min(opacity + (1.0 - shadows), 1.0);
     gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);
   }
 `;
 
-const OFFSCREEN_WIDTH = 2048, OFFSCREEN_HEIGHT = 2048; // 离屏绘制的尺寸
+const OFFSCREEN_WIDTH = 1024, OFFSCREEN_HEIGHT = 1024; // 离屏绘制的尺寸
 const LIGHT_X = 0, LIGHT_Y = 7, LIGHT_Z = 2; // 光源坐标
 
 function main() {
@@ -99,7 +125,7 @@ function main() {
   const mvpMatrixFromLight_t = new Matrix4();
   const mvpMatrixFromLight_p = new Matrix4();
   const tick = function() {
-    currentAngle = animate(currentAngle);
+    // currentAngle = animate(currentAngle);
 
     // 把绘制目标切换到帧缓冲区，拿到阴影纹理
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
