@@ -14,8 +14,8 @@
   * [9.基础交互-鼠标选中物体表面](#9基础交互-鼠标选中物体表面)
   * [10.利用阴影贴图实现阴影](#10利用阴影贴图实现阴影)
 - [threejs](#threejs)
-  * [1.github-contributions-3维图像](###[1github-contributions-3维图像])
-  * [2.仿微信跳一跳](###[2仿微信跳一跳])
+  * [1.github-contributions-3维图像](#1github-contributions-3维图像)
+  * [2.仿微信跳一跳](#2仿微信跳一跳)
 
 
 ## canvas
