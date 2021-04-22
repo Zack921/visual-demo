@@ -11,12 +11,23 @@ let clock = new THREE.Clock();
 let delta, speed;
 var t1 = new Date().getTime();
 let isReady = false;
-let isOk = false;
 let hasShowRose = false;
+let hasShowRoseAni = false;
+let hasShowText = false;
+let hasShowTextAni = false;
+let hasShowTextAniHide = false;
+let finishTextHideAni = false;
 let roseGeo;
 let roseGroup;
 let textMesh;
 let textRotate = 0;
+let lovePoints = [];
+let loveGeo;
+let loveGroup;
+let lovePointNum = 360;
+let drawPointNum = 10;
+let hasShowLove = false;
+let hasShowLoveAni = false;
 
 const domElement = document.getElementById("canvas-frame");
 
@@ -74,12 +85,17 @@ function initLight() {
 function lineRose(o, a = 10, k = 4) {
   return a * Math.cos((k * o * Math.PI) / 180);
 }
-// 极坐标转 x/y 坐标
-function x(o, p) {
-  return p * Math.cos((o * Math.PI) / 180);
+//心形线
+// a表示从x轴上从原点到最远点的一半
+function lineLove(o, a = 100) {
+  return a * (1 - Math.cos((o * Math.PI) / 180));
 }
-function y(o, p) {
-  return p * Math.sin((o * Math.PI) / 180);
+// 极坐标转 x/y 坐标
+function x(o, p, rotate = 0) {
+  return p * Math.cos(((o + rotate) * Math.PI) / 180);
+}
+function y(o, p, rotate = 0, deltaY = 0) {
+  return p * Math.sin(((o + rotate) * Math.PI) / 180) + deltaY;
 }
 
 function initObject2() {
@@ -291,26 +307,6 @@ function checkIsReady() {
   return (isReady = true);
 }
 
-function checkIsOk() {
-  let point;
-  for (let index = 0; index < geometry1.vertices.length; index++) {
-    point = geometry1.vertices[index];
-    if (cache[index].x > 0 && point.x < cache[index].x) {
-      return false;
-    }
-    if (cache[index].x < 0 && point.x > cache[index].x) {
-      return false;
-    }
-    if (cache[index].y > 0 && point.y < cache[index].y) {
-      return false;
-    }
-    if (cache[index].y < 0 && point.y > cache[index].y) {
-      return false;
-    }
-  }
-  return (isOk = true);
-}
-
 function showRose() {
   let sprite, timerandom;
   for (let index = 0; index < roseGroup.children.length; index++) {
@@ -331,18 +327,14 @@ function showRose() {
       x: 0,
       y: 0,
       z: 0,
-      delay: 1.2 + timerandom,
+      delay: 2 + timerandom,
       ease: Power2.easeIn,
+      onComplete: () => {
+        hasShowRoseAni = true;
+      },
     });
-    // TweenMax.to(sprite.position, timerandom, {
-    //   y: "-=1500",
-    //   delay: 1.8 + timerandom,
-    //   ease: Power2.easeIn,
-    // });
   }
-  setTimeout(() => {
-    hasShowRose = true;
-  }, 2000);
+  hasShowRose = true;
 }
 
 function showText() {
@@ -376,15 +368,112 @@ function showText() {
       z: 1,
       delay: 1,
       ease: Power2.easeIn,
+      onComplete: () => {
+        hasShowTextAni = true;
+      },
     });
 
-    // TweenMax.to(textMesh.rotation, 1, {
-    //   y: textMesh.rotation.y += Math.PI,
-    //   delay: 1.5,
-    //   ease: Power2.easeIn,
-    // });
-
+    hasShowText = true;
   });
+}
+
+function showTextAni() {
+  if (!textMesh) return;
+
+  TweenMax.to(textMesh.rotation, 3, {
+    y: textMesh.rotation.y + Math.PI * 4,
+    delay: 0.5,
+    ease: Power2.easeIn,
+    onComplete: () => {
+      textMesh = null;
+    },
+  });
+  TweenMax.to(textMesh.scale, 3, {
+    x: 0,
+    y: 0,
+    z: 0,
+    delay: 0.5,
+    ease: Power2.easeIn,
+    onComplete: () => {
+      textMesh = null;
+      finishTextHideAni = true;
+    },
+  });
+  hasShowTextAniHide = true;
+}
+
+function showLove() {
+  if (lovePoints.length === 0) {
+    let pointx, pointy, pointz;
+    for (let i = 0; i <= 360; i++) {
+      pointx = x(i, lineLove(i, 50), 90);
+      pointy = y(i, lineLove(i, 50), 90, 40);
+      pointz = 0;
+      lovePoints.push(new THREE.Vector3(pointx, pointy, -pointz));
+    }
+  }
+
+  if (drawPointNum > lovePointNum) {
+    return (hasShowLove = true);
+  } else {
+    drawPointNum += 1;
+    const drawPoints = lovePoints.slice(0, drawPointNum);
+    const spline = new THREE.CatmullRomCurve3(drawPoints);
+    loveGeo = new THREE.Geometry();
+    for (let i = 0; i < drawPoints.length; i++) {
+      let index = i / drawPoints.length;
+      const position = spline.getPoint(index);
+      loveGeo.vertices[i] = new THREE.Vector3(
+        position.x,
+        position.y,
+        position.z
+      );
+    }
+    let loveLine = scene.getObjectByName("loveLine");
+    if (loveLine) {
+      scene.remove(loveLine);
+    }
+    loveLine = new THREE.Line(loveGeo);
+    loveLine.name = "loveLine";
+    scene.add(loveLine);
+  }
+}
+
+function showLoveAni() {
+  let loveLine = scene.getObjectByName("loveLine");
+  if (loveLine) {
+    scene.remove(loveLine);
+  }
+  const drawPoints = lovePoints.slice(0, drawPointNum);
+  const spline = new THREE.CatmullRomCurve3(drawPoints);
+  loveGeo = new THREE.Geometry();
+  for (let i = 0; i < drawPoints.length; i++) {
+    let index = i / drawPoints.length;
+    const position = spline.getPoint(index);
+    loveGeo.vertices[i] = new THREE.Vector3(position.x, position.y, position.z);
+  }
+
+  loveGroup = new THREE.Group();
+  let loveSprite, timerandom;
+  for (let i = 0; i < loveGeo.vertices.length; i++) {
+    let timerandom = 1 * Math.random();
+
+    loveSprite = new THREE.Sprite();
+    loveSprite.position.x = loveGeo.vertices[i].x;
+    loveSprite.position.y = loveGeo.vertices[i].y;
+    loveSprite.position.z = loveGeo.vertices[i].z;
+    // particle2.scale.x = particle2.scale.y = Math.random() * 6 + 3;
+
+    loveGroup.add(loveSprite);
+
+    TweenMax.to(loveSprite.position, timerandom, {
+      y: "-=1500",
+      delay: 1.8 + timerandom,
+      ease: Power2.easeIn,
+    });
+  }
+  scene.add(loveGroup);
+  hasShowLoveAni = true;
 }
 
 function render() {
@@ -410,90 +499,24 @@ function render() {
         }
       });
     }
-  } else {
-    if (!hasShowRose) showRose();
-    if (textMesh && textRotate < Math.PI * 2) {
-      const delta = Math.PI / 180 * 5;
-      textRotate += delta;
-      textMesh.rotateY(delta);
-    } else if (textMesh && textRotate >= Math.PI * 2) {
-      TweenMax.to(textMesh.scale, 0.5, {
-        x: 0,
-        y: 0,
-        z: 0,
-        delay: 0.5,
-        ease: Power2.easeIn,
-      });
-      setTimeout(()=>{
-        textMesh = null;
-      }, 2000);
-    }
+    return;
   }
-}
 
-function render2() {
-  renderer.render(scene, camera);
-  stats.update();
-
-  if (!geometry1) return;
-
-  if (!isReady) checkIsReady();
-
-  if (!isReady) {
-    delta = 10 * clock.getDelta();
-    const speed = 5;
-    delta = delta < 2 ? delta : 2;
-    const dur = new Date().getTime() - t1;
-    if (dur < 18000) {
-      geometry1.vertices.forEach((point) => {
-        if (point.y < 0) {
-          point.x = fsin(point.y);
-          point.y += delta * speed * Math.random();
-        }
-        if (point.y >= 0) {
-          point.x = 0;
-          point.y = 0;
-        }
-      });
-      geometry1.verticesNeedUpdate = true;
-    }
-  } else if (!isOk) {
-    var timerandom = 1 * Math.random();
-    geometry1.vertices.forEach((point) => {
-      TweenMax.to(point, timerandom, {
-        x: point.x + (0.5 - Math.random()) * 100,
-        y: point.y + (0.5 - Math.random()) * 100,
-        z: point.z + Math.random() * 100,
-        delay: 1.8,
-      });
-      TweenMax.to(point, timerandom, {
-        y: "-=1500",
-        z: "300",
-        delay: 1.8 + timerandom,
-        ease: Power2.easeIn,
-      });
-      // geometry1.verticesNeedUpdate = true;
-    });
-
-    // geometry1.vertices.forEach((point, index) => {
-    //   if (cache[index].x > 0 && point.x < cache[index].x) {
-    //     point.x += 0.3;
-    //   }
-    //   if (cache[index].x < 0 && point.x > cache[index].x) {
-    //     point.x -= 0.3;
-    //   }
-    //   if (cache[index].y > 0 && point.y < cache[index].y) {
-    //     point.y += 0.3;
-    //   }
-    //   if (cache[index].y < 0 && point.y > cache[index].y) {
-    //     point.y -= 0.3;
-    //   }
-    // });
-    // geometry1.verticesNeedUpdate = true;
-    // checkIsOk();
-  } else {
-    // console.log("isOk: ", isOk);
+  if (!hasShowRose) {
+    return showRose();
   }
+
+  if (hasShowRoseAni && !hasShowText) {
+    return showText();
+  }
+
+  if (hasShowTextAni && !hasShowTextAniHide) {
+    return showTextAni();
+  }
+
+  if (finishTextHideAni && !hasShowLove) return showLove();
+
+  if (hasShowLove && !hasShowLoveAni) return showLoveAni();
 }
 
 function animation() {
@@ -507,8 +530,6 @@ function start() {
   initCamera();
   initLight();
   initObject();
-
-  showText();
 
   animation();
 }
