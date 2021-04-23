@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>diy阴影</title>
+    <style type="text/css">
+      body,
+      html {
+        height: 100%;
+      }
+      div#canvas-frame {
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+        background-color: #eeeeee;
+      }
+    </style>
+  </head>
+  <body>
+    <script id="vertexShader" type="x-shader/x-vertex">
+        // 使用ShaderMaterial类，顶点位置变量position无需声明，顶点着色器可以直接调用
+        // attribute vec3 position;
+        // attribute float test;
+        uniform float test;
+        varying float test2;
+        void main(){
+          // 逐顶点处理：顶点位置数据赋值给内置变量gl_Position
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          test2 = test;
+        }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+      varying float test2;
+        void main() {
+          // 逐片元处理：每个片元或者说像素设置为红色
+          gl_FragColor = vec4(test2, 0.0, 0.0, 1.0);
+        }
+    </script>
+    <div id="canvas-frame"></div>
+    <script src="assets/three.js"></script>
+    <script src="assets/Stats.js"></script>
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>
