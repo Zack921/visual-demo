@@ -28,7 +28,7 @@ function initThree() {
 
   renderer.setSize(width, height);
 
-  // renderer.setClearColor("rgb(255,255,247)", 1.0);
+  renderer.setClearColor("rgb(255,255,247)", 1.0);
 }
 
 function initScene() {
@@ -81,7 +81,9 @@ function initLight() {
   const light = new THREE.DirectionalLight(0xffffff); // 平行光
   light.position.set(20, 50, 0);
   scene.add(light);
-  bufferScene.add(light);
+  const light2 = new THREE.DirectionalLight(0xffffff); // 平行光
+  light2.position.set(20, 50, 0);
+  bufferScene.add(light2);
 
   const lightGeo = new THREE.BoxGeometry(5, 5, 5);
   const lightMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
@@ -89,7 +91,11 @@ function initLight() {
   lightCube.position.x = 20;
   lightCube.position.y = 50;
   scene.add(lightCube);
-  bufferScene.add(lightCube);
+
+  const lightCube2 = new THREE.Mesh(lightGeo, lightMat);
+  lightCube2.position.x = 20;
+  lightCube2.position.y = 50;
+  bufferScene.add(lightCube2);
 }
 
 function initObject() {
@@ -103,7 +109,11 @@ function initObject() {
   });
   const plane = new THREE.Mesh(geometry, planeMaterial);
   // plane.rotation.x = Math.PI / 2;
-  // scene.add(plane);
+  scene.add(plane);
+
+  const plane2 = new THREE.Mesh(geometry, material);
+  plane2.rotation.x = Math.PI / 2;
+  // bufferScene.add(plane2);
 
   const cubeGeo = new THREE.BoxGeometry(20, 20, 20);
   const cubeMat = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
@@ -114,11 +124,14 @@ function initObject() {
   console.log("bufferScene: ", bufferScene);
 
   const diyMaterial = new THREE.ShaderMaterial({
+    // attributes 居然传不进去
     // attributes: {
     //   test: { value: 0.5 },
     // },
     uniforms: {
-      test: { value: 0.5 },
+      modelViewMatrixSM: { value: camera2.modelViewMatrix },
+      projectionMatrixSM: { value: camera2.projectionMatrix },
+      depthTexture: { value: bufferTexture.depthTexture },
     },
     vertexShader: document.getElementById("vertexShader").textContent,
     fragmentShader: document.getElementById("fragmentShader").textContent,
@@ -126,8 +139,8 @@ function initObject() {
   const cubeGeo2 = new THREE.BoxGeometry(20, 20, 20);
   const bGeometry = new THREE.BufferGeometry();
   bGeometry.fromGeometry(cubeGeo2);
-  console.log('bGeometry: ', bGeometry);
   var mesh = new THREE.Mesh(bGeometry, diyMaterial); // 网格模型对象Mesh
+  mesh.position.y += 10;
   scene.add(mesh);
 }
 
@@ -138,8 +151,8 @@ function render() {
   // camera.position.z = 0;
   // camera.lookAt(bufferScene.position);
   // camera.updateProjectionMatrix();
-  // renderer.setRenderTarget(bufferTexture);
-  // renderer.render(bufferScene, camera2);
+  renderer.setRenderTarget(bufferTexture);
+  renderer.render(bufferScene, camera2);
   // 渲染到屏幕
   // camera.position.x = 50;
   // camera.position.y = 50;
