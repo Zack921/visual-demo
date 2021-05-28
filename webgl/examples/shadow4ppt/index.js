@@ -10,7 +10,8 @@ const SHADOW_VSHADER_SOURCE = `
 const SHADOW_FSHADER_SOURCE = `
   precision mediump float;
   void main() {
-    gl_FragColor = vec4(gl_FragCoord.z, 0.0, 0.0, 0.0); // 将片元的z值写入色值
+    // 将片元的z值写入色值
+    gl_FragColor = vec4(gl_FragCoord.z, 0.0, 0.0, 0.0);
   }
 `;
 
@@ -24,22 +25,39 @@ const VSHADER_SOURCE = `
   varying vec4 v_Color;
   void main() {
     gl_Position = u_MvpMatrix * a_Position;
-    v_PositionFromLight = u_MvpMatrixFromLight * a_Position; // 以光源为视点的坐标
+    // 以光源为视点的坐标
+    v_PositionFromLight = u_MvpMatrixFromLight * a_Position;
     v_Color = a_Color;
   }
 `;
 
 // 不使用pcf
+// const FSHADER_SOURCE = `
+//   precision mediump float;
+//   uniform sampler2D u_ShadowMap;
+//   varying vec4 v_PositionFromLight;
+//   varying vec4 v_Color;
+//   void main() {
+//     vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[0,1]的纹理区间
+//     vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);
+//     float depth = rgbaDepth.r; // 阴影纹理上该点的z值
+//     float visibility = (shadowCoord.z > depth + 0.1) ? 0.7 : 1.0; // +0.005以消除马赫带，主要是精度影响。shadowCoord.z是16位，depth是8位
+//     gl_FragColor = vec4(v_Color.rgb * 1.0, v_Color.a);
+//   }
+// `;
+
+// 不使用pcf - ppt
 const FSHADER_SOURCE = `
   precision mediump float;
   uniform sampler2D u_ShadowMap;
   varying vec4 v_PositionFromLight;
   varying vec4 v_Color;
   void main() {
-    vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[0,1]的纹理区间
+    // 归一化到[0,1]的纹理区间
+    vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5;
     vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);
     float depth = rgbaDepth.r; // 阴影纹理上该点的z值
-    float visibility = (shadowCoord.z > depth + 0.1) ? 0.7 : 1.0; // +0.005以消除马赫带，主要是精度影响。shadowCoord.z是16位，depth是8位
+    float visibility = (shadowCoord.z > depth + 0.1) ? 0.7 : 1.0;
     gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);
   }
 `;
@@ -269,8 +287,9 @@ function initVertexBuffersForPlane(gl) {
 }
 
 function initVertexBuffersForSMPlane(gl,normalProgram4SM) {
-  // 顶点坐标和纹理坐标共用一个缓冲区
-  const vertices = new Float32Array([
+  // 顶点坐标和纹理坐标共用一个缓冲区 
+  // 左边为顶点坐标，右边为纹理坐标
+  const verticesTexCoords = new Float32Array([
     -0.5,  0.5,   0.0, 1.0,
     -0.5, -0.5,   0.0, 0.0,
     0.5,  0.5,   1.0, 1.0,
@@ -285,9 +304,9 @@ function initVertexBuffersForSMPlane(gl,normalProgram4SM) {
   }
 
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, verticesTexCoords, gl.STATIC_DRAW);
 
-  const FSIZE = vertices.BYTES_PER_ELEMENT;
+  const FSIZE = verticesTexCoords.BYTES_PER_ELEMENT;
   const a_Position = gl.getAttribLocation(normalProgram4SM, 'a_Position');
   if (a_Position < 0) {
     console.log('Failed to get the storage location of a_Position');
@@ -295,21 +314,6 @@ function initVertexBuffersForSMPlane(gl,normalProgram4SM) {
   }
   gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, FSIZE * 4, 0);
   gl.enableVertexAttribArray(a_Position);
-
-  const vertexTexCoordBuffer = gl.createBuffer();
-  if (!vertexTexCoordBuffer) {
-    console.log('Failed to create the buffer object');
-    return -1;
-  }
-
-  const verticesTexCoords = new Float32Array([
-    -0.5,  0.5,   0.0, 1.0,
-    -0.5, -0.5,   0.0, 0.0,
-    0.5,  0.5,   1.0, 1.0,
-    0.5, -0.5,   1.0, 0.0,
-  ]);
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexCoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, verticesTexCoords, gl.STATIC_DRAW);
 
   const a_TexCoord = gl.getAttribLocation(normalProgram4SM, 'a_TexCoord');
   if (a_TexCoord < 0) {
