@@ -31,61 +31,46 @@ const VSHADER_SOURCE = `
   }
 `;
 
-// 不使用pcf
+// 不使用pcf - ppt
 // const FSHADER_SOURCE = `
 //   precision mediump float;
 //   uniform sampler2D u_ShadowMap;
 //   varying vec4 v_PositionFromLight;
 //   varying vec4 v_Color;
 //   void main() {
-//     vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[0,1]的纹理区间
+//     // 归一化到[0,1]的纹理区间
+//     vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5;
 //     vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);
 //     float depth = rgbaDepth.r; // 阴影纹理上该点的z值
-//     float visibility = (shadowCoord.z > depth + 0.1) ? 0.7 : 1.0; // +0.005以消除马赫带，主要是精度影响。shadowCoord.z是16位，depth是8位
-//     gl_FragColor = vec4(v_Color.rgb * 1.0, v_Color.a);
+//     float visibility = (shadowCoord.z > depth + 0.1) ? 0.7 : 1.0;
+//     gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);
 //   }
 // `;
 
-// 不使用pcf - ppt
+// 使用pcf
 const FSHADER_SOURCE = `
   precision mediump float;
   uniform sampler2D u_ShadowMap;
   varying vec4 v_PositionFromLight;
   varying vec4 v_Color;
   void main() {
-    // 归一化到[0,1]的纹理区间
-    vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5;
-    vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);
-    float depth = rgbaDepth.r; // 阴影纹理上该点的z值
-    float visibility = (shadowCoord.z > depth + 0.1) ? 0.7 : 1.0;
+    vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[0,1]的纹理区间
+    float shadows = 0.0;
+    float opacity = 0.6; // 阴影alpha值, 值越小暗度越深
+    float texelSize = 1.0/1024.0; // 阴影像素尺寸,值越小阴影越逼真
+    vec4 rgbaDepth;
+    //  消除阴影边缘的锯齿
+    for(float y=-1.5; y <= 1.5; y += 1.0){
+      for(float x=-1.5; x <=1.5; x += 1.0){
+        rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy + vec2(x,y) * texelSize);
+        shadows += (shadowCoord.z > rgbaDepth.r + 0.01) ? 1.0 : 0.0;
+      }
+    }
+    shadows /= 16.0; // 4*4的样本
+    float visibility = min(opacity + (1.0 - shadows), 1.0);
     gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);
   }
 `;
-
-// 使用pcf
-// const FSHADER_SOURCE = `
-//   precision mediump float;
-//   uniform sampler2D u_ShadowMap;
-//   varying vec4 v_PositionFromLight;
-//   varying vec4 v_Color;
-//   void main() {
-//     vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5; // 归一化到[0,1]的纹理区间
-//     float shadows = 0.0;
-//     float opacity = 0.6; // 阴影alpha值, 值越小暗度越深
-//     float texelSize = 1.0/1024.0; // 阴影像素尺寸,值越小阴影越逼真
-//     vec4 rgbaDepth;
-//     //  消除阴影边缘的锯齿
-//     for(float y=-1.5; y <= 1.5; y += 1.0){
-//       for(float x=-1.5; x <=1.5; x += 1.0){
-//         rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy + vec2(x,y) * texelSize);
-//         shadows += (shadowCoord.z > rgbaDepth.r + 0.01) ? 1.0 : 0.0;
-//       }
-//     }
-//     shadows /= 16.0; // 4*4的样本
-//     float visibility = min(opacity + (1.0 - shadows), 1.0);
-//     gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);
-//   }
-// `;
 
 // 显示SM
 const VSHADER_SOURCE_SM = `
@@ -222,7 +207,7 @@ function drawTriangle(gl, program, triangle, angle, viewProjMatrix) {
 }
 
 function drawPlane(gl, program, plane, viewProjMatrix) {
-  g_modelMatrix.setRotate(1, 0, 1, 1);
+  g_modelMatrix.setRotate(0, 0, 1, 1);
   draw(gl, program, plane, viewProjMatrix);
 }
 
