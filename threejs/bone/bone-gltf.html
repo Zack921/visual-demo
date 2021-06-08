@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>骨骼动画</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+  <style>
+    body {
+      font-family: Monospace;
+      background-color: #000;
+      color: #fff;
+      margin: 0px;
+      overflow: hidden;
+    }
+
+    #info {
+      color: #fff;
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      text-align: center;
+      z-index: 100;
+      display: block;
+    }
+
+    #info a {
+      color: #046;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="avatarDom" style="width: 414px; height: 700px; display: block; background: #ccc"></div>
+  <script src="https://cdn.bootcss.com/three.js/91/three.min.js"></script>
+  <script type="module" src="bone-gltf.js"></script>
+
+</body>
+
+</html>
